@@ -24,6 +24,11 @@ jobs:
     - name: Run RSS script
       run: python rss.py
 
+    - name: Checkout repository
+      uses: actions/checkout@v3
+      with:
+        fetch-depth: 0  # ← これ追加！
+
     - name: Commit and push
       run: |
         git config --global user.name 'github-actions[bot]'
@@ -35,6 +40,7 @@ jobs:
         git push
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
 
 
 
