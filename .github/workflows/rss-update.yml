@@ -24,22 +24,27 @@ jobs:
     - name: Run RSS script
       run: python rss.py
 
-    - name: Checkout repository
-      uses: actions/checkout@v3
-      with:
-        fetch-depth: 0  # ← これ追加！
+- name: Checkout repository
+  uses: actions/checkout@v3
+  with:
+    fetch-depth: 0  # ← フル履歴を取得
 
-    - name: Commit and push
-      run: |
-        git config --global user.name 'github-actions[bot]'
-        git config --global user.email 'github-actions[bot]@users.noreply.github.com'
-        git remote set-url origin https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/masafushimi/rss.git
-        git pull --rebase || echo "git pull failed"
-        git add combined.xml
-        git commit -m "Auto-update combined.xml [skip ci]" || echo "No changes to commit"
-        git push
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+- name: Commit and push
+  run: |
+    git config --global user.name 'github-actions[bot]'
+    git config --global user.email 'github-actions[bot]@users.noreply.github.com'
+    git remote set-url origin https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/masafushimi/rss.git
+
+    # 明示的にブランチをチェックアウト（これが超重要！）
+    git checkout main
+    git pull origin main --rebase || echo "rebase failed"
+
+    git add combined.xml
+    git commit -m "Auto-update combined.xml [skip ci]" || echo "No changes to commit"
+    git push origin main
+  env:
+    GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
 
 
 
