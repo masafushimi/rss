@@ -27,7 +27,7 @@ jobs:
 - name: Checkout repository
   uses: actions/checkout@v3
   with:
-    fetch-depth: 0  # ← フル履歴を取得
+    fetch-depth: 0
 
 - name: Commit and push
   run: |
@@ -35,15 +35,17 @@ jobs:
     git config --global user.email 'github-actions[bot]@users.noreply.github.com'
     git remote set-url origin https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/masafushimi/rss.git
 
-    # 明示的にブランチをチェックアウト（これが超重要！）
-    git checkout main
-    git pull origin main --rebase || echo "rebase failed"
+    # 明示的にmainブランチを追跡付きでcheckout（←これがカギ！）
+    git fetch origin main
+    git checkout -B main origin/main
 
+    git pull --rebase
     git add combined.xml
     git commit -m "Auto-update combined.xml [skip ci]" || echo "No changes to commit"
     git push origin main
   env:
     GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
 
 
 
