@@ -10,47 +10,35 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - name: Checkout repository
-      uses: actions/checkout@v3
+      - name: Checkout repository
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0  # ← フル履歴を取得（pullやrebaseのために必須）
 
-    - name: Set up Python
-      uses: actions/setup-python@v4
-      with:
-        python-version: '3.11'
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
 
-    - name: Install dependencies
-      run: pip install feedparser feedgen
+      - name: Install dependencies
+        run: pip install feedparser feedgen
 
-    - name: Run RSS script
-      run: python rss.py
+      - name: Run RSS script
+        run: python rss.py
 
-- name: Checkout repository
-  uses: actions/checkout@v3
-  with:
-    fetch-depth: 0
+      - name: Commit and push
+        run: |
+          git config --global user.name 'github-actions[bot]'
+          git config --global user.email 'github-actions[bot]@users.noreply.github.com'
+          git remote set-url origin https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/masafushimi/rss.git
 
-- name: Commit and push
-  run: |
-    git config --global user.name 'github-actions[bot]'
-    git config --global user.email 'github-actions[bot]@users.noreply.github.com'
-    git remote set-url origin https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/masafushimi/rss.git
+          git fetch origin main
+          git checkout -B main origin/main
 
-    git fetch origin main
-    git checkout -B main origin/main
+          git add combined.xml
+          git commit -m "Auto-update combined.xml [skip ci]" || echo "No changes to commit"
 
-    git add combined.xml
-    git commit -m "Auto-update combined.xml [skip ci]" || echo "No changes to commit"
-
-    # ここ！強制pushでリモートのmainを上書き
-    git push origin main --force
-  env:
-    GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-
-
-
-
-
-
-
-
+          # 明示的なrefspecを指定して強制push（最終手段）
+          git push origin main:refs/heads/main --force
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
